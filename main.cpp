@@ -14,21 +14,16 @@ UserManager um;
 crow::SimpleApp app;
 
 void shutdownHandler(int signum) {
-    // Save and cleanup on shutdown
     Persistence::save(kv.snapShot(), "data/db.json");
     kv.clearWAL();
-    std::_Exit(0);  // Force exit to interrupt app.run()
+    std::_Exit(0);
 }
 
 int main() {
     std::filesystem::create_directories("data");
-
-    // Load DB and WAL recovery
     kv.replayWAL();
     auto data = Persistence::load("data/db.json");
     kv.load(data);
-
-    // Setup graceful shutdown
     std::signal(SIGINT, shutdownHandler);
     std::signal(SIGTERM, shutdownHandler);
 
@@ -40,7 +35,6 @@ int main() {
         return crow::response(kv.get(key));
     });
 
-    // PUT key-value
     CROW_ROUTE(app, "/put").methods(crow::HTTPMethod::Post)
     ([](const crow::request& req) {
         auto body = crow::json::load(req.body);
@@ -51,7 +45,6 @@ int main() {
         return crow::response(200, "Inserted");
     });
 
-    // DELETE key
     CROW_ROUTE(app, "/delete/<string>").methods(crow::HTTPMethod::Delete)
     ([](const string& key) {
         if (!kv.exists(key))
@@ -60,8 +53,6 @@ int main() {
         kv.del(key);
         return crow::response(200, "Deleted");
     });
-
-    // POST atomic transaction
     CROW_ROUTE(app, "/tx").methods(crow::HTTPMethod::Post)
     ([](const crow::request& req) {
         auto body = crow::json::load(req.body);
@@ -84,8 +75,7 @@ int main() {
         return crow::response(200, "Transaction Applied");
     });
 
-    // Start the app
     app.port(8080).multithreaded().run();
 
-    return 0;  // Should never reach here due to run() being blocking
+    return 0;
 }
