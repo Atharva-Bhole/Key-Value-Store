@@ -1,0 +1,3 @@
+put,admin:key1,value1
+put,admin:key2,value2
+delete,admin:key1,

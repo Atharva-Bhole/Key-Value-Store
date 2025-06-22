@@ -17,7 +17,7 @@ void Persistence::save(const unordered_map<string, string> &data, const string& 
     }
 }
 
-unordered_map<string, string> Persistence::load(const string& filename) {
+std::unordered_map<std::string, std::string> Persistence::load(const string &filename) {
     unordered_map<string, string> data;
     ifstream file(filename);
     if (file.is_open()) {
@@ -26,5 +26,5 @@ unordered_map<string, string> Persistence::load(const string& filename) {
         data = j.get<unordered_map<string, string>>();
         file.close();
     }
-    return data;
+    return data; // ✔️ Safe: returns a copy
 }
