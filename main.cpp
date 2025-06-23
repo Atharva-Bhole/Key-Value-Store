@@ -4,6 +4,7 @@
 #include "include/kv_store.h"
 #include "include/user_manager.h"
 #include "include/persistence.h"
+#include "include/nlohmann/json.hpp"
 
 #include <filesystem>
 #include <csignal>
@@ -52,6 +53,16 @@ int main() {
 
         kv.del(key);
         return crow::response(200, "Deleted");
+    });
+
+    CROW_ROUTE(app, "/store").methods(crow::HTTPMethod::Post)
+    ([] (const crow::request &req) {
+        auto body_json = nlohmann::json::parse(req.body);
+        for (auto & el: body_json.items()) {
+            kv.put(el.key(), el.value().dump());
+        }
+
+        return crow::response(200, "Inserted the data successfully");
     });
     CROW_ROUTE(app, "/tx").methods(crow::HTTPMethod::Post)
     ([](const crow::request& req) {
